@@ -78,5 +78,5 @@ if __name__ == '__main__':
             progress = int(count / total * 100)
             bar = '[' + '#' * progress + ' ' * (100 - progress) + ']'
             print(f'Progress: {bar} {progress}% ({count}/{total})')
-            if count == 123:
+            if count == total:
                 print('Recording...')
