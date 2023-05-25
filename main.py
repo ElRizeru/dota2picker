@@ -60,9 +60,9 @@ def get_heroes(compare):
         output_opposite_total = round(sum(output_opposite.values()), 2)
         output = dict(sorted(output.items(), key=lambda x: x[1], reverse=True))
         output_opposite = dict(sorted(output_opposite.items(), key=lambda x: x[1], reverse=True))
-        print(f'Кол-во очков Team1: {output_total}')
-        print(f'Кол-во очков Team2: {output_opposite_total}\n')
-        print('Оценка по героям:')
+        print(f'Team1 points: {output_total}')
+        print(f'Team2 points: {output_opposite_total}\n')
+        print('Evaluation by heroes:')
         for key, value in output.items():
             print(f"{key}: {round(value, 2)}%")
         print('---------------------')
@@ -71,11 +71,11 @@ def get_heroes(compare):
         print('---------------------')
         output_temp = get_normalized_scores(output_temp)
         output_opposite_temp = get_normalized_scores(output_opposite_temp)
-        print('Лучший пик для Team1:')
+        print('Best pick for Team1:')
         for key, value in sorted(output_temp.items(), key=lambda x: x[1], reverse=True)[:30]:
             print(f"{key}: {value}%")
         print('---------------------')
-        print('Лучший пик для Team2:')
+        print('Best pick for Team2:')
         for key, value in sorted(output_opposite_temp.items(), key=lambda x: x[1], reverse=True)[:30]:
             print(f"{key}: {value}%")
         return
@@ -89,7 +89,7 @@ def get_heroes(compare):
 def compare_window():
     global left_combos, right_combos
     compare_win = tk.Toplevel(root)
-    compare_win.title("AutoPicker Compare")
+    compare_win.title("Dota2Picker Compare")
     compare_win.geometry("650x180")
 
     left_frame = tk.Frame(compare_win)
@@ -115,13 +115,13 @@ def compare_window():
         combo.grid(row=i, column=0, padx=5, pady=5)
         right_combos.append(combo)
 
-    bt = tk.Button(compare_win, text="Сравнить", command=lambda: get_heroes(True)).pack(side="bottom", fill='x')
+    bt = tk.Button(compare_win, text="Compare", command=lambda: get_heroes(True)).pack(side="bottom", fill='x')
 
 
 def main():
     global combos, var, root, heroes
     root = tk.Tk()
-    root.title("AutoPicker")
+    root.title("Dota2Picker")
     root.geometry("300x185")
 
     with open(f"database/Heroes.txt", "r") as f:
@@ -134,10 +134,10 @@ def main():
         combo.pack()
         combos.append(combo)
 
-    tk.Button(root, text="Выбрать героев", command=lambda: get_heroes(False)).pack()
-    tk.Button(root, text="Сравнить героев", command=compare_window).pack()
+    tk.Button(root, text="Choose your heroes", command=lambda: get_heroes(False)).pack()
+    tk.Button(root, text="Compare heroes", command=compare_window).pack()
     var = tk.BooleanVar()
-    tk.Checkbutton(root, text='Учитывать win rate? (глобально)', variable=var).pack()
+    tk.Checkbutton(root, text='Take into account win rate? (globally)', variable=var).pack()
 
     root.mainloop()
 
