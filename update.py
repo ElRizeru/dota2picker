@@ -77,6 +77,6 @@ if __name__ == '__main__':
             count += 1
             progress = int(count / total * 100)
             bar = '[' + '#' * progress + ' ' * (100 - progress) + ']'
-            print(f'Прогресс: {bar} {progress}% ({count}/{total})')
+            print(f'Progress: {bar} {progress}% ({count}/{total})')
             if count == 123:
-                print('Запись...')
+                print('Recording...')
