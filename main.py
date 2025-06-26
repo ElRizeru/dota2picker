@@ -26,7 +26,12 @@ def main():
 
         data_file = Path("data/hero_matchups.json")
         data_manager = DataManager(data_file)
-        analysis_logic = AnalysisLogic(data_manager, k_factor=0.12)
+        analysis_logic = AnalysisLogic(
+            data_manager, 
+            adv_k_factor=0.1, 
+            synergy_k_factor=1.0, 
+            winrate_k_factor=0.08
+        )
         
         app = Application(root, data_manager, analysis_logic)
         app.pack(fill="both", expand=True)

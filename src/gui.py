@@ -1,4 +1,3 @@
-# File: src\gui.py
 import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import List, Tuple, Callable
@@ -112,8 +111,17 @@ class Application(ttk.Frame):
     def _create_widgets(self):
         options_frame = ttk.Frame(self)
         options_frame.pack(fill="x", pady=(0, 10))
+        
         self.use_winrate_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(options_frame, text="Factor in hero winrates", variable=self.use_winrate_var).pack(side="left")
+        ttk.Checkbutton(options_frame, text="Factor in hero winrates", variable=self.use_winrate_var).pack(side="left", padx=(0,10))
+        
+        self.use_synergy_var = tk.BooleanVar(value=True)
+        self.synergy_checkbutton = ttk.Checkbutton(options_frame, text="Consider hero synergy", variable=self.use_synergy_var)
+        self.synergy_checkbutton.pack(side="left")
+
+        if not self.dm.has_synergy_data():
+            self.use_synergy_var.set(False)
+            self.synergy_checkbutton.config(state="disabled")
 
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
@@ -162,7 +170,7 @@ class Application(ttk.Frame):
     def _run_counter_analysis(self, enemy_heroes, use_winrate):
         """Threaded function for counter analysis."""
         try:
-            cache_key = ("counter", tuple(enemy_heroes), use_winrate)
+            cache_key = ("counter", tuple(sorted(enemy_heroes)), use_winrate)
             if cache_key in self._analysis_cache:
                 recommendations = self._analysis_cache[cache_key]
             else:
@@ -226,18 +234,18 @@ class Application(ttk.Frame):
         
         threading.Thread(
             target=self._run_team_analysis,
-            args=(t1_heroes, t2_heroes, self.use_winrate_var.get()),
+            args=(t1_heroes, t2_heroes, self.use_winrate_var.get(), self.use_synergy_var.get()),
             daemon=True
         ).start()
 
-    def _run_team_analysis(self, t1_heroes, t2_heroes, use_winrate):
+    def _run_team_analysis(self, t1_heroes, t2_heroes, use_winrate, use_synergy):
         """Threaded function for team analysis."""
         try:
-            cache_key = ("analysis", tuple(t1_heroes), tuple(t2_heroes), use_winrate)
+            cache_key = ("analysis", tuple(sorted(t1_heroes)), tuple(sorted(t2_heroes)), use_winrate, use_synergy)
             if cache_key in self._analysis_cache:
                 analysis = self._analysis_cache[cache_key]
             else:
-                analysis = self.logic.analyze_teams(t1_heroes, t2_heroes, use_winrate)
+                analysis = self.logic.analyze_teams(t1_heroes, t2_heroes, use_winrate, use_synergy)
                 self._analysis_cache[cache_key] = analysis
             
             self._update_ui_after(lambda: self._show_team_results(analysis))
@@ -330,7 +338,7 @@ class Application(ttk.Frame):
             tree.insert('', 'end', values=(placeholder, "", ""))
         else:
             for name, raw_score, norm_score in data:
-                tree.insert('', 'end', values=(name, f"{raw_score:.2f}", f"{norm_score:.1f}%"))
+                tree.insert('', 'end', values=(name, f"{raw_score:.3f}", f"{norm_score:.1f}%"))
 
     def _update_ui_after(self, func: Callable):
         """Thread-safe UI update helper."""

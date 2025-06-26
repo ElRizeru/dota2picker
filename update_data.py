@@ -1,11 +1,17 @@
 import time
 from pathlib import Path
 import json
+import logging
 from src.scraper import Scraper
 
 def main():
-    """Data updater with incremental scraping and backups."""
-    print("--- Dota 2 Hero Matchup Updater ---")
+    """Data updater using the Stratz API."""
+    print("--- Dota 2 Hero Data Updater (Stratz API) ---")
+    api_key = input("Enter your Stratz API Bearer Token: ")
+    if not api_key:
+        print("No API key provided. Aborting.")
+        return
+
     data_dir = Path("data")
     data_file = data_dir / "hero_matchups.json"
     data_dir.mkdir(exist_ok=True)
@@ -16,30 +22,20 @@ def main():
     try:
         scraper = Scraper()
         
-        print("\nFetching hero list...")
-        heroes = scraper.get_all_heroes()
-        print(f"Found {len(heroes)} heroes")
-        
-        existing_data = {}
-        if data_file.exists():
-            print("\nLoading existing data for incremental update...")
-            with open(data_file, 'r') as f:
-                existing_data = json.load(f).get("matchup_data", {})
-        
-        print("\nScraping matchup data...")
-        matchup_data = scraper.scrape_all_matchups(heroes, existing_data)
+        all_data = scraper.scrape_all_data(api_key)
         
         print("\nSaving data...")
-        scraper.save_data_to_json(heroes, matchup_data, data_file)
+        scraper.save_data_to_json(all_data, data_file)
         
         duration = time.time() - start_time
         print("\n--- Success! ---")
-        print(f"Updated data for {len(matchup_data)} heroes")
+        print(f"Updated data for {len(all_data.get('heroes', []))} heroes.")
         print(f"Time taken: {duration:.2f} seconds")
         
     except Exception as e:
+        logging.error(f"An error occurred during the update process: {e}", exc_info=True)
         print(f"\n--- Error ---\n{e}")
-        print("Update failed")
+        print("Update failed. Check logs for details.")
 
 if __name__ == "__main__":
     main()
