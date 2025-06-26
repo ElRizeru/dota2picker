@@ -88,18 +88,22 @@ class AnalysisLogic:
         win_prob = self._calculate_win_probability(t1_total, t2_total)
         
         t1_hero_scores = {}
-        synergy_per_hero_t1 = (self.synergy_k * t1_synergy_score) / len(team1_heroes) if team1_heroes and use_synergy else 0.0
         for h1 in team1_heroes:
             matchup_score = t1_matchup_scores[h1]
             winrate_b = (self.dm.get_hero_winrate(h1) - 50.0) * self.winrate_k if use_winrate else 0.0
-            t1_hero_scores[h1] = matchup_score + winrate_b + synergy_per_hero_t1
+            synergy_b = 0.0
+            if use_synergy and len(team1_heroes) > 1:
+                synergy_b = self.synergy_k * sum(self.dm.get_synergy_score(h1, ally) for ally in team1_heroes if ally != h1)
+            t1_hero_scores[h1] = matchup_score + winrate_b + synergy_b
 
         t2_hero_scores = {}
-        synergy_per_hero_t2 = (self.synergy_k * t2_synergy_score) / len(team2_heroes) if team2_heroes and use_synergy else 0.0
         for h2 in team2_heroes:
             matchup_score = t2_matchup_scores[h2]
             winrate_b = (self.dm.get_hero_winrate(h2) - 50.0) * self.winrate_k if use_winrate else 0.0
-            t2_hero_scores[h2] = matchup_score + winrate_b + synergy_per_hero_t2
+            synergy_b = 0.0
+            if use_synergy and len(team2_heroes) > 1:
+                synergy_b = self.synergy_k * sum(self.dm.get_synergy_score(h2, ally) for ally in team2_heroes if ally != h2)
+            t2_hero_scores[h2] = matchup_score + winrate_b + synergy_b
 
         t1_suggestions = self._get_draft_suggestions(team1_heroes, team2_heroes, use_winrate, use_synergy)
         t2_suggestions = self._get_draft_suggestions(team2_heroes, team1_heroes, use_winrate, use_synergy)

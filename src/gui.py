@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import List, Tuple, Callable
 import threading
-from functools import lru_cache
 
 class HeroSelector(ttk.Frame):
     """Widget for selecting heroes."""
@@ -283,6 +282,7 @@ class Application(ttk.Frame):
         self.analyze_button.pack(side="left", padx=5)
 
     def _create_analysis_results_widgets(self):
+        """Creates the full results display area, called once."""
         self.analysis_results_frame.columnconfigure(0, weight=1)
         
         win_prob_frame = ttk.Frame(self.analysis_results_frame)
@@ -302,19 +302,22 @@ class Application(ttk.Frame):
         
         t1_notebook = ttk.Notebook(t1_tab)
         t1_notebook.pack(fill="both", expand=True)
-        t1_contrib_frame, self.t1_contrib_tree = self._create_results_widget(t1_notebook)
-        t1_suggest_frame, self.t1_suggest_tree = self._create_results_widget(t1_notebook)
-        t1_notebook.add(t1_contrib_frame, text="Hero Contributions")
-        t1_notebook.add(t1_suggest_frame, text="Draft Suggestions")
+        self.t1_contrib_tree, self.t1_suggest_tree = self._setup_analysis_sub_notebook(t1_notebook)
         
         t2_notebook = ttk.Notebook(t2_tab)
         t2_notebook.pack(fill="both", expand=True)
-        t2_contrib_frame, self.t2_contrib_tree = self._create_results_widget(t2_notebook)
-        t2_suggest_frame, self.t2_suggest_tree = self._create_results_widget(t2_notebook)
-        t2_notebook.add(t2_contrib_frame, text="Hero Contributions")
-        t2_notebook.add(t2_suggest_frame, text="Draft Suggestions")
+        self.t2_contrib_tree, self.t2_suggest_tree = self._setup_analysis_sub_notebook(t2_notebook)
+
+    def _setup_analysis_sub_notebook(self, parent_notebook: ttk.Notebook) -> Tuple[ttk.Treeview, ttk.Treeview]:
+        """[REFACTORED] Creates and populates a sub-notebook for hero contributions and suggestions."""
+        contrib_frame, contrib_tree = self._create_results_widget(parent_notebook)
+        suggest_frame, suggest_tree = self._create_results_widget(parent_notebook)
+        parent_notebook.add(contrib_frame, text="Hero Contributions")
+        parent_notebook.add(suggest_frame, text="Draft Suggestions")
+        return contrib_tree, suggest_tree
 
     def _create_results_widget(self, parent) -> Tuple[ttk.Frame, ttk.Treeview]:
+        """Creates a container frame with a Treeview and a scrollbar."""
         container = ttk.Frame(parent)
         tree = ttk.Treeview(container, columns=('Hero', 'Score', 'Rating'), show='headings')
         tree.heading('Hero', text='Hero')
@@ -333,6 +336,7 @@ class Application(ttk.Frame):
         return container, tree
 
     def _update_treeview(self, tree: ttk.Treeview, data: List, placeholder: str = "No data"):
+        """Clears and populates a Treeview with normalized score data."""
         tree.delete(*tree.get_children())
         if not data:
             tree.insert('', 'end', values=(placeholder, "", ""))

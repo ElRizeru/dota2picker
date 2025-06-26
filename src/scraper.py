@@ -61,11 +61,12 @@ class Scraper:
         return sorted(heroes, key=lambda x: x['name']), id_to_name
 
     def _scrape_winrates(self, hero_ids: List[int], id_to_name_map: Dict[int, str], auth_headers: Dict) -> Dict[str, float]:
-        """Fetches overall winrates for all heroes for the latest game version."""
+        """Fetches overall winrates for all heroes for the latest game version in All Pick Ranked."""
         query = f"""
         {{
             heroStats {{
-                winGameVersion(heroIds: {json.dumps(hero_ids)}) {{
+                winGameVersion(heroIds: {json.dumps(hero_ids)}, gameModeIds: ALL_PICK_RANKED) {{
+                    gameVersionId
                     heroId
                     winCount
                     matchCount
@@ -76,8 +77,14 @@ class Scraper:
         data = self._make_graphql_request(query, auth_headers)
         winrate_stats = data.get('data', {}).get('heroStats', {}).get('winGameVersion', [])
         
-        winrates = {}
+        latest_hero_stats = {}
         for stat in winrate_stats:
+            hero_id = stat['heroId']
+            if hero_id not in latest_hero_stats or stat['gameVersionId'] > latest_hero_stats[hero_id]['gameVersionId']:
+                latest_hero_stats[hero_id] = stat
+        
+        winrates = {}
+        for stat in latest_hero_stats.values():
             hero_name = id_to_name_map.get(stat['heroId'])
             if hero_name and stat['matchCount'] > 0:
                 winrate = (stat['winCount'] / stat['matchCount']) * 100
